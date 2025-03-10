@@ -56,7 +56,7 @@ The core idea behind this implementation is to:
 
 ---
 
-## TODO (After Research)
+## TODO
 - Implement a **user-space packet capture framework**.
 - Compare **AF_PACKET, PF_RING, io_uring, and DPDK** for kernel bypass.
 - Optimize filtering using **SIMD (AVX, SSE) and batch processing**.
