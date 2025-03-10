@@ -1,3 +1,9 @@
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/alexisdrobles/)
+[![Email](https://img.shields.io/badge/Email-D14836?style=for-the-badge&logo=gmail&logoColor=white)](mailto:alexisrobles2025@u.northwestern.edu)
+[![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/al3xisrobles)
+[![Personal Website](https://img.shields.io/badge/Portfolio-FF7139?style=for-the-badge&logo=googlechrome&logoColor=white)](https://alexis-robles.com)
+[![Instagram](https://img.shields.io/badge/Instagram-FF0069?style=for-the-badge&logo=instagram&logoColor=white)]((https://www.instagram.com/alexisrobles00/))
+
 # Fast User-Space Network Packet Filter for HFT
 
 This project aims to build a high-performance, user-space network packet filter optimized for low-latency trading environments. Traditional network packet filtering solutions rely heavily on kernel-space processing, introducing unnecessary context switch overhead, system call latency, and buffer copying inefficiencies. By bypassing the kernel’s traditional networking stack and implementing user-space packet filtering, this project will explore the fundamental trade-offs in networking performance and HFT infrastructure optimizations.
