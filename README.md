@@ -21,12 +21,16 @@ Key features include
 
 In HFT, nanoseconds matter. Every microsecond of delay between receiving market data and placing an order can determine profitability. As a result, packet filtering efficiency is critical—traders must process high-velocity financial data feeds in real-time, without waiting for the operating system’s traditional networking stack to handle incoming packets.
 
+One way to do this is to create a process in the user space—but at that point, what stops the scheduler from switching to another process, slowing our process more so than if it were kernel-based? In high-performance user-space networking, we want our process to stay on the CPU continuously to avoid context switching overhead. To achieve this, we use three key techniques—CPU pinning (affinity), busy polling, and real-time scheduling.
+
 This project implements a high-performance user-space packet filter, which skips the overhead of system calls, kernel context switches, and buffer copies. The standard Berkeley Packet Filter (BPF) and its successor, eBPF/XDP, provide efficient in-kernel packet filtering, but even these approaches suffer from context switch penalties. Instead, user-space solutions such as AF_PACKET (mmap-based packet capture), PF_RING, io_uring, and DPDK provide direct access to network interfaces, enabling microsecond-scale packet processing.
 
 The core idea behind this implementation is to:
 1. Capture packets directly in user space using a kernel-bypass approach.
 2. Filter packets efficiently using a minimal processing pipeline, potentially leveraging SIMD (AVX, SSE) to maximize CPU parallelism.
 3. Batch process packets to avoid the syscall overhead of per-packet operations.
+
+I'll be developing and testing on my university's x86_64 Linux compute cluster.
 
 ---
 
