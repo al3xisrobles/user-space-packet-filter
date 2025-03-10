@@ -30,6 +30,10 @@ The core idea behind this implementation is to:
 
 ---
 
+## Methods
+
+---
+
 ## References
 
 #### **Academic Research Papers**
