@@ -1,7 +1,5 @@
 # Fast User-Space Network Packet Filter for HFT
 
-## Overview
-
 This project aims to build a **high-performance, user-space network packet filter** optimized for **low-latency trading environments**. Traditional network packet filtering solutions rely heavily on kernel-space processing, introducing unnecessary **context switch overhead, system call latency, and buffer copying inefficiencies**. By bypassing the kernel’s traditional networking stack and implementing **user-space packet filtering**, this project will explore the **fundamental trade-offs in networking performance** and **HFT infrastructure optimizations**.
 
 ### Key Features:
