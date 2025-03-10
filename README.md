@@ -47,7 +47,7 @@ The core idea behind this implementation is to:
 - Farshin, Alireza, et al. *“PacketMill: Toward Per-Core 100-Gbps Networking.”* *Proceedings of the 26th International Conference on Architectural Support for Programming Languages and Operating Systems (ASPLOS)*, 2021, pp. 241–255.
 - Belay, Adam, et al. *“IX: A Protected Dataplane Operating System.”* *Proceedings of the 11th USENIX Symposium on Operating Systems Design and Implementation (OSDI)*, 2014, pp. 49–65.
 
-#### **Technical Blog Posts & Documentation (For Guidance)**
+#### **Technical Blog Posts & Documentation**
 - ntop. *“PF_RING: A High-Speed Packet Capture Framework.”* ntop.org, 2023.
 - Databento Engineering. *“Kernel Bypass for Trading: DPDK, io_uring, and Alternatives.”* 2023.
 - Red Hat Developer. *“Why You Should Use io_uring for Network I/O.”* Red Hat, 2023.
