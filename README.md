@@ -35,7 +35,7 @@ The core idea behind this implementation is to:
 #### **Academic Research Papers**
 
 - Rizzo, Luigi. *“netmap: A Novel Framework for Fast Packet I/O.”* *USENIX ATC*, 2012.
-- Belay, Adam et al. *“IX: A Protected Dataplane Operating System for High Throughput and Low Latency.”* *OSDI*, 2014.
+- Belay, Adam, et al. *“IX: A Protected Dataplane Operating System.”* *Proceedings of the 11th USENIX Symposium on Operating Systems Design and Implementation (OSDI)*, 2014, pp. 49–65.
 - Peter, Simon et al. *“Arrakis: The Operating System is the Control Plane.”* *OSDI*, 2014.
 - Emmerich, Paul, et al. *“User Space Network Drivers.”* *Proceedings of the 15th ACM/IEEE Symposium on Architectures for Networking and Communications Systems (ANCS)*, 2019, pp. 1–13.
 - Høiland-Jørgensen, Toke, et al. *“The eXpress Data Path: Fast Programmable Packet Processing in the Operating System Kernel.”* *Proceedings of the 14th International Conference on Emerging Networking EXperiments and Technologies (CoNEXT)*, 2018, pp. 54–66.
@@ -45,7 +45,6 @@ The core idea behind this implementation is to:
 - Planeta, Dominik, et al. *“CoRD: Converged RDMA Dataplane.”* *arXiv preprint arXiv:2305.08976*, 2023.
 - Kogias, Eleftherios, et al. *“MachNet: Fast Userspace Networking for Cloud VMs.”* *arXiv preprint arXiv:2502.11322*, 2025.
 - Farshin, Alireza, et al. *“PacketMill: Toward Per-Core 100-Gbps Networking.”* *Proceedings of the 26th International Conference on Architectural Support for Programming Languages and Operating Systems (ASPLOS)*, 2021, pp. 241–255.
-- Belay, Adam, et al. *“IX: A Protected Dataplane Operating System.”* *Proceedings of the 11th USENIX Symposium on Operating Systems Design and Implementation (OSDI)*, 2014, pp. 49–65.
 
 #### **Technical Blog Posts & Documentation**
 - ntop. *“PF_RING: A High-Speed Packet Capture Framework.”* ntop.org, 2023.
