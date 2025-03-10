@@ -1,6 +1,6 @@
 # Fast User-Space Network Packet Filter for HFT
 
-This project aims to build a **high-performance, user-space network packet filter** optimized for **low-latency trading environments**. Traditional network packet filtering solutions rely heavily on kernel-space processing, introducing unnecessary **context switch overhead, system call latency, and buffer copying inefficiencies**. By bypassing the kernel’s traditional networking stack and implementing **user-space packet filtering**, this project will explore the **fundamental trade-offs in networking performance** and **HFT infrastructure optimizations**.
+This project aims to build a high-performance, user-space network packet filter optimized for low-latency trading environments. Traditional network packet filtering solutions rely heavily on kernel-space processing, introducing unnecessary context switch overhead, system call latency, and buffer copying inefficiencies. By bypassing the kernel’s traditional networking stack and implementing user-space packet filtering, this project will explore the fundamental trade-offs in networking performance and HFT infrastructure optimizations.
 
 Key features include
 - **Zero-copy packet capture** using AF_PACKET, PF_RING, or a similar mechanism.
@@ -12,9 +12,9 @@ Key features include
 
 ## Introduction
 
-In high-frequency trading (HFT), **nanoseconds matter**. Every microsecond of delay between **receiving market data** and **placing an order** can determine profitability. As a result, **packet filtering efficiency is critical**—traders must process high-velocity financial data feeds in **real-time**, without waiting for the operating system’s traditional networking stack to handle incoming packets.
+In HFT, nanoseconds matter. Every microsecond of delay between receiving market data and placing an order can determine profitability. As a result, packet filtering efficiency is critical—traders must process high-velocity financial data feeds in real-time, without waiting for the operating system’s traditional networking stack to handle incoming packets.
 
-This project will implement a **high-performance user-space packet filter**, which skips the overhead of **system calls, kernel context switches, and buffer copies**. The standard **Berkeley Packet Filter (BPF)** and its successor, **eBPF/XDP**, provide efficient in-kernel packet filtering, but even these approaches suffer from context switch penalties. Instead, user-space solutions such as **AF_PACKET (mmap-based packet capture), PF_RING, io_uring, and DPDK** provide direct access to network interfaces, enabling microsecond-scale packet processing.
+This project will implement a high-performance user-space packet filter, which skips the overhead of system calls, kernel context switches, and buffer copies. The standard Berkeley Packet Filter (BPF) and its successor, eBPF/XDP, provide efficient in-kernel packet filtering, but even these approaches suffer from context switch penalties. Instead, user-space solutions such as AF_PACKET (mmap-based packet capture), PF_RING, io_uring, and DPDK provide direct access to network interfaces, enabling microsecond-scale packet processing.
 
 The core idea behind this implementation is to:
 1. **Capture packets directly in user space** using a kernel-bypass approach.
@@ -32,7 +32,7 @@ By implementing this system, we explore a fundamental question: **How can modern
 - Belay, Adam et al. *“IX: A Protected Dataplane Operating System for High Throughput and Low Latency.”* *OSDI*, 2014.
 - Barrelfish Project. *“Arrakis: The Operating System is the Control Plane.”* *OSDI*, 2014.
 
-#### **Technical Blog Posts & Documentation**
+#### **Technical Blog Posts & Documentation (For Guidance)**
 - ntop. *“PF_RING: A High-Speed Packet Capture Framework.”* ntop.org, 2023.
 - Databento Engineering. *“Kernel Bypass for Trading: DPDK, io_uring, and Alternatives.”* 2023.
 - Red Hat Developer. *“Why You Should Use io_uring for Network I/O.”* Red Hat, 2023.
