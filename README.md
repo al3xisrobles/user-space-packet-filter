@@ -44,6 +44,7 @@ TODO
 
 #### **Academic Research Papers**
 
+-  McCann, Steven, et al. *The BSD Packet Filter: A New Architecture for User-level Packet Capture*, 1992.
 - Rizzo, Luigi. *“netmap: A Novel Framework for Fast Packet I/O.”* *USENIX ATC*, 2012.
 - Belay, Adam, et al. *“IX: A Protected Dataplane Operating System.”* *Proceedings of the 11th USENIX Symposium on Operating Systems Design and Implementation (OSDI)*, 2014, pp. 49–65.
 - Peter, Simon et al. *“Arrakis: The Operating System is the Control Plane.”* *OSDI*, 2014.
