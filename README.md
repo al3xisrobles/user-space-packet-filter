@@ -24,7 +24,7 @@ Standard networking packet processing is too slow. Usually, Linux processes netw
 
 This process introduces context switch overhead, memory copies, and system call latency. While acceptable in general computing, it's far too slow for HFT, where microseconds can mean millions. The solution? User-space packet processing.
 
-To eliminate kernel bottlenecks, we leverage user-space packet filtering, which enables the trading engine to process only relevant market data (e.g., specific stock symbols, order book updates). By filtering packets before they reach higher-level logic, we reduce overall CPU load and minimize latency from packet ingestion to trade execution. In other words, instead of allowing packets to be processed by the kernel, this project implements a high-performance packet filter in user space, capturing data directly from the NIC and skipping the kernel’s slow networking stack.
+To eliminate kernel bottlenecks, we leverage packet filtering, which enables the trading engine to process only relevant market data (e.g., specific stock symbols, order book updates). By filtering packets before they reach higher-level logic, we reduce overall CPU load and minimize latency from packet ingestion to trade execution. The standard Berkeley Packet Filter (BPF) and its successor, eBPF/XDP, provide efficient in-kernel packet filtering, but even these approaches suffer from context switch penalties between kernel-space and user-space processes. Instead, user-space solutions such as AF_PACKET (mmap-based packet capture), PF_RING, io_uring, and DPDK provide direct access to network interfaces, enabling microsecond-scale packet processing. In other words, instead of allowing packets to be processed by the kernel, this project implements a high-performance packet filter in user space, capturing data directly from the NIC and skipping the kernel’s slow networking stack.
 
 We achieve this using low-latency networking techniques, including
 - AF_PACKET (mmap-based raw sockets) to capture packets with minimal syscalls from the user-space.
@@ -38,8 +38,6 @@ Packet filtering is only one piece of the puzzle. In an HFT system, we typically
 - Trading algorithm process → consumes filtered data and makes trading decisions.
 
 In a standard setup, these two processes would be scheduled separately by the OS, which could introduce context switches. However, in ultra-low-latency environments like HFT, we pin them to specific CPU cores and use polling to minimize OS intervention.
-
-The standard Berkeley Packet Filter (BPF) and its successor, eBPF/XDP, provide efficient in-kernel packet filtering, but even these approaches suffer from context switch penalties. Instead, user-space solutions such as AF_PACKET (mmap-based packet capture), PF_RING, io_uring, and DPDK provide direct access to network interfaces, enabling microsecond-scale packet processing.
 
 By developing this project, I explore how modern OS and hardware features can be leveraged to build ultra-low-latency trading infrastructure—a critical component of competitive HFT strategies.
 
