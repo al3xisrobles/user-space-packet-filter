@@ -39,8 +39,6 @@ Packet filtering is only one piece of the puzzle. In an HFT system, we typically
 
 In a standard setup, these two processes would be scheduled separately by the OS, which could introduce context switches. However, in ultra-low-latency environments like HFT, we pin them to specific CPU cores and use polling to minimize OS intervention.
 
-By developing this project, I explore how modern OS and hardware features can be leveraged to build ultra-low-latency trading infrastructure—a critical component of competitive HFT strategies.
-
 ---
 
 ## Methods
