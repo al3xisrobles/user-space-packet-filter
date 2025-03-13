@@ -15,9 +15,8 @@ This project aims to build a high-performance, user-space network packet filter 
 
 In HFT, nanoseconds matter. Every microsecond of delay between receiving market data and placing an order can determine profitability. As a result, traders must process high-velocity financial data feeds in real-time, without waiting for the operating system’s traditional networking stack to handle incoming packets.
 
-#### Why Standard Packet Processing is Too Slow
+Standard networking packet processing is too slow. Usually, Linux processes network packets in multiple steps:
 
-Usually, Linux processes network packets in multiple steps:
 - The network interface controller (NIC) receives a packet and triggers an interrupt.
 - The kernel processes the packet, handling firewall rules, routing, and TCP/IP logic.
 - The kernel passes the packet to user-space via system calls (`recv()` or `read()`).
