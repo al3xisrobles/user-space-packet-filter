@@ -5,7 +5,7 @@
 
 # Fast User-Space Network Packet Filter for HFT
 
-**How can modern OS and hardware features be used to build ultra-low-latency trading infrastructure?**
+*How can modern OS and hardware features be used to build ultra-low-latency trading infrastructure?*
 
 This project aims to build a high-performance, user-space network packet filter optimized for low-latency trading environments. Traditional network packet filtering solutions rely heavily on kernel-space processing, introducing unnecessary context switch overhead, system call latency, and buffer copying inefficiencies. By bypassing the kernel’s traditional networking stack and implementing user-space packet filtering, this project explores the fundamental trade-offs in networking performance and HFT infrastructure optimizations.
 
