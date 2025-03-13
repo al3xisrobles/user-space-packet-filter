@@ -32,7 +32,7 @@ We achieve this using low-latency networking techniques, including
 - io_uring (asynchronous I/O) to batch process packets efficiently.
 - SIMD optimizations (AVX, SSE) for high-speed packet processing in parallel.
 
-Packet filtering is only one piece of the puzzle—we also have a trading algorithm to execute in parallel with packet filtering. The CPU scheduler is responsible for managing processes and deciding which process runs on which core at what time. In an HFT system, we typically have two tightly coupled processes
+Packet filtering is only one piece of the puzzle. In an HFT system, we typically have two tightly coupled processes
 
 - Packet filtering process → captures and filters market data (this project).
 - Trading algorithm process → consumes filtered data and makes trading decisions.
