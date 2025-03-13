@@ -17,10 +17,10 @@ In HFT, nanoseconds matter. Every microsecond of delay between receiving market 
 
 Standard networking packet processing is too slow. Usually, Linux processes network packets in multiple steps:
 
-- The network interface controller (NIC) receives a packet and triggers an interrupt.
-- The kernel processes the packet, handling firewall rules, routing, and TCP/IP logic.
-- The kernel passes the packet to user-space via system calls (`recv()` or `read()`).
-- The trading system processes the packet and makes decisions.
+1. The network interface controller (NIC) receives a packet and triggers an interrupt.
+2. The kernel processes the packet, handling firewall rules, routing, and TCP/IP logic.
+3. The kernel passes the packet to user-space via system calls (`recv()` or `read()`).
+4. The trading system processes the packet and makes decisions.
 
 This process introduces context switch overhead, memory copies, and system call latency. While acceptable in general computing, it's far too slow for HFT, where microseconds can mean millions. The solution? User-space packet processing.
 
