@@ -72,7 +72,7 @@ I'll be developing and testing on my university's x86_64 Linux compute cluster.
 - HackerNoon. *“The HFT Developer’s Guide: Six Key Components for Low Latency and Scalability.”* 2022.
 - SiS Dev Blog. *“Best Practices on HFT Low-Latency Software.”* 2023.
 
-#### *Textbooks*
+#### **Textbooks**
 - Ghosh, Sourav. *"Building Low Latency Applications with C++"*, 2023.
 
 ---
