@@ -45,6 +45,12 @@ In a standard setup, these two processes would be scheduled separately by the OS
 
 I'll be developing and testing on my university's x86_64 Linux compute cluster.
 
+TODO:
+- Implement a user-space packet capture framework.
+- Compare AF_PACKET, PF_RING, io_uring, and DPDK for kernel bypass.
+- Optimize filtering using SIMD (AVX, SSE) and batch processing.
+- Evaluate performance across different network conditions and workloads.
+
 ---
 
 ## Results
@@ -80,14 +86,6 @@ None yet. Development is in progress.
 
 #### **Textbooks**
 - Ghosh, Sourav. *"Building Low Latency Applications with C++"*, 2023.
-
----
-
-## TODO
-- Implement a user-space packet capture framework.
-- Compare AF_PACKET, PF_RING, io_uring, and DPDK for kernel bypass.
-- Optimize filtering using SIMD (AVX, SSE) and batch processing.
-- Evaluate performance across different network conditions and workloads.
 
 ---
 
