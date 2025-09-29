@@ -48,8 +48,7 @@ This process introduces context switch overhead, memory copies, and system call 
 To eliminate kernel bottlenecks, we leverage packet filtering, which enables the trading engine to process only relevant market data (e.g., specific stock symbols, order book updates). By filtering packets before they reach higher-level logic, we reduce overall CPU load and minimize latency from packet ingestion to trade execution. The standard Berkeley Packet Filter (BPF) and its successor, eBPF/XDP, provide efficient in-kernel packet filtering, but even these approaches suffer from context switch penalties between kernel-space and user-space processes. Instead, user-space solutions such as netmap and DPDK provide direct access to network interfaces, enabling microsecond-scale packet processing. In other words, instead of allowing packets to be processed by the kernel, this project implements a high-performance packet filter in user space, capturing data directly from the NIC and skipping the kernel’s slow networking stack.
 
 We achieve this using low-latency networking techniques, including
-- AF_PACKET (mmap-based raw sockets) to capture packets with minimal syscalls from the user-space.
-- DPDK (Data Plane Development Kit) for kernel-bypass networking and direct NIC access.
+- netmap (network I/O framework) to capture packets with minimal syscalls from the user-space with direct NIC access.
 - io_uring (asynchronous I/O) to batch process packets efficiently.
 - SIMD optimizations (AVX, SSE) for high-speed packet processing in parallel.
 
@@ -58,7 +57,7 @@ Packet filtering is only one piece of the puzzle. In an HFT system, we typically
 - Packet filtering process → captures and filters market data (this project).
 - Trading algorithm process → consumes filtered data and makes trading decisions.
 
-In a standard setup, these two processes would be scheduled separately by the OS, which could introduce context switches. However, in ultra-low-latency environments like HFT, we pin them to specific CPU cores and use polling to minimize OS intervention.
+In a standard setup, these two processes would be scheduled separately by the OS, which could introduce context switches. However, in ultra-low-latency environments like HFT, we pin them to specific CPU cores and use polling and a producer/consumer design scheme to minimize OS intervention.
 
 ---
 
