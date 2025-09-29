@@ -85,14 +85,10 @@ int BypassIO::rx_batch(const std::function<bool(const PacketView&)>& cb) {
     // Optionally use poll() if busy_poll is false; otherwise spin for low latency
     if (!cfg_.busy_poll) {
         pollfd pfd{impl_->fd, POLLIN, 0};
-        if (poll(&pfd, 1, 1000) <= 0) {
-            // Print that we timed out waiting for packets
-            std::cout << "Poll timed out or error occurred while waiting for packets.";
-            return 0;
-        } else {
-            // Print that we are ready to receive packets
-            std::cout << "Ready to receive packets after poll.";
-        }
+        if (poll(&pfd, 1, 1000) <= 0) return 0;
+    } else {
+        // In busy-poll mode, explicitly ask the kernel to sync RX
+        ioctl(impl_->fd, NIOCRXSYNC, nullptr);
     }
 
     const int limit_per_ring = cfg_.burst;
@@ -100,6 +96,8 @@ int BypassIO::rx_batch(const std::function<bool(const PacketView&)>& cb) {
     for (int r = impl_->rx_first; r <= impl_->rx_last; ++r) {
         auto* ring = NETMAP_RXRING(nmd->nifp, r);
         uint32_t avail = nm_ring_space(ring);
+        // Log that we checked the ring and how many packets are available
+        std::cout << "Checked ring " << r << ", available packets: " << avail;
         if (avail == 0) continue;
 
         uint32_t take =

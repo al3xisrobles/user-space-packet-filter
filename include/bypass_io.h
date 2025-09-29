@@ -1,22 +1,22 @@
 #pragma once
-#include "common.h"
-#include <string>
 #include <functional>
+#include <string>
+#include "common.h"
 
 struct BypassConfig {
     std::string ifname = "netmap:eth0";  // e.g., netmap:eth0 or vale:sw{1
-    int rx_ring_first = -1;              // -1 = all
-    int rx_ring_last  = -1;
+    int rx_ring_first = -1;  // -1 = all
+    int rx_ring_last = -1;
     int tx_ring_first = -1;
-    int tx_ring_last  = -1;
+    int tx_ring_last = -1;
     int burst = BATCH_SIZE;
-    bool busy_poll = true;               // spin for lowest latency
-    bool enable_vnet_hdr = false;        // set/require virtio-net header
-    int  cpu_affinity = -1;              // -1 = don't pin
+    bool busy_poll = true;  // spin for lowest latency
+    bool enable_vnet_hdr = false;  // set/require virtio-net header
+    int cpu_affinity = -1;  // -1 = don't pin
 };
 
 class BypassIO {
-public:
+   public:
     explicit BypassIO(const BypassConfig& cfg);
     ~BypassIO();
 
@@ -33,7 +33,7 @@ public:
     // Valid after construction
     bool ok() const { return ok_; }
 
-private:
+   private:
     BypassConfig cfg_;
     Stats stats_{};
     bool ok_{false};
