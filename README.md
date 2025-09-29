@@ -17,6 +17,27 @@ Key features include
 
 ---
 
+## Running
+
+Build (requires netmap headers/libs on the system):
+```bash
+make
+```
+
+Run on a netmap port (example):
+
+```bash
+sudo ./build/user_space_packet_filter -i netmap:eth0 -p 12345 -c 0 -b 256 -r 15
+```
+
+* -i netmap interface (netmap:eth0, vale:sw{1, etc.)
+* -p UDP dst port to accept (0 = any)
+* -c pin RX thread to CPU core id
+* -b batch size per ring poll
+* -r seconds to print stats before exit
+
+---
+
 ## Introduction
 
 In HFT, nanoseconds matter. Every microsecond of delay between receiving market data and placing an order can determine profitability. As a result, packet filtering efficiency is critical—traders must process high-velocity financial data feeds in real-time, without waiting for the operating system’s traditional networking stack to handle incoming packets.

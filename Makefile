@@ -1,50 +1,25 @@
-# Compiler and flags
-CXX := g++
-CXXFLAGS := -std=c++17 -Wall -Wextra -O3 -march=native -pthread -Iinclude
-LDFLAGS := -lpcap   # Link against libpcap for packet capture
+CXX ?= c++
+CXXFLAGS := -O3 -march=native -std=c++20 -Wall -Wextra -DNDEBUG
+CPPFLAGS := -Iinclude -DUSE_NETMAP -DNETMAP_WITH_LIBS
+LDLIBS   := -lnetmap -lpthread
 
-# Project directories
-SRC_DIR := src
-INCLUDE_DIR := include
-TEST_DIR := tests
-BUILD_DIR := build
+SRC := src/main.cpp src/bypass_io.cpp src/packet_capture.cpp src/packet_filter.cpp src/benchmarks.cpp src/trading_engine.cpp
+OBJ := $(patsubst src/%.cpp,build/%.o,$(SRC))
+BIN := build/user_space_packet_filter
 
-# Source files
-SRCS := $(wildcard $(SRC_DIR)/*.cpp)
-OBJS := $(patsubst $(SRC_DIR)/%.cpp, $(BUILD_DIR)/%.o, $(SRCS))
-DEPS := $(patsubst $(SRC_DIR)/%.cpp, $(BUILD_DIR)/%.d, $(SRCS))
+all: $(BIN)
 
-# Test files
-TEST_SRCS := $(wildcard $(TEST_DIR)/*.cpp)
-TEST_OBJS := $(patsubst $(TEST_DIR)/%.cpp, $(BUILD_DIR)/%.o, $(TEST_SRCS))
+$(BIN): $(OBJ) | build
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) $(OBJ) -o $@ $(LDLIBS)
 
-# Executable name
-TARGET := fast-packet-filter
-TEST_TARGET := test-runner
+# Compile each .cpp in src/ into a matching .o in build/
+build/%.o: src/%.cpp | build
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c $< -o $@
 
-# Default rule (compiles everything)
-all: $(TARGET)
+build:
+	mkdir -p build
 
-# Compile the main executable
-$(TARGET): $(OBJS)
-	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
-
-# Compile source files
-$(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
-	@mkdir -p $(BUILD_DIR)
-	$(CXX) $(CXXFLAGS) -I$(INCLUDE_DIR) -c $< -o $@
-
-# Run tests
-test: $(TEST_TARGET)
-	./$(TEST_TARGET)
-
-# Compile test runner
-$(TEST_TARGET): $(TEST_OBJS) $(OBJS)
-	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
-
-# Clean build files
 clean:
-	rm -rf $(BUILD_DIR) $(TARGET) $(TEST_TARGET)
+	rm -rf build
 
-# Include dependency files for incremental builds
--include $(DEPS)
+.PHONY: all clean
