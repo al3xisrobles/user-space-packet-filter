@@ -9,22 +9,26 @@
 #include <cstring>
 
 namespace {
-    // TODO: Replace this constant price mean reversion logic to something
-    //       more dynamic, like inventory driven fitting + vol fitting, etc.
-    constexpr double PRICE_MEAN = 100.0;
+// TODO: Replace this constant price mean reversion logic to something
+//       more dynamic, like inventory driven fitting + vol fitting, etc.
+constexpr double PRICE_MEAN = 100.0;
 
-    std::string instr_name(int instr_id) {
-        switch (instr_id) {
-            case 0: return "UNDERLYING";
-            case 1: return "OPTION";
-            case 2: return "FUTURE";
-            default: return "UNKNOWN";
-        }
+std::string instr_name(int instr_id) {
+    switch (instr_id) {
+        case 0:
+            return "UNDERLYING";
+        case 1:
+            return "OPTION";
+        case 2:
+            return "FUTURE";
+        default:
+            return "UNKNOWN";
     }
 }
+}  // namespace
 
-TradingEngine::TradingEngine(std::shared_ptr<Ring> ring)
-    : ring_(std::move(ring)) {}
+TradingEngine::TradingEngine(std::shared_ptr<Ring> ring) : ring_(std::move(ring)) {
+}
 
 TradingEngine::~TradingEngine() {
     stop();
@@ -42,6 +46,7 @@ void TradingEngine::stop() {
     if (worker_.joinable()) worker_.join();
 }
 
+// Consumer
 void TradingEngine::run_once() {
     Tick t;
     while (ring_->pop(t)) {
@@ -49,17 +54,11 @@ void TradingEngine::run_once() {
 
         std::cout << "Received tick with name: " << name;
         if (t.px < PRICE_MEAN) {
-            std::cout << "[BUY ] " << name
-                      << " qty=" << t.qty
-                      << " @ " << t.px << "\n";
+            std::cout << "[BUY ] " << name << " qty=" << t.qty << " @ " << t.px << "\n";
         } else if (t.px > PRICE_MEAN) {
-            std::cout << "[SELL] " << name
-                      << " qty=" << t.qty
-                      << " @ " << t.px << "\n";
+            std::cout << "[SELL] " << name << " qty=" << t.qty << " @ " << t.px << "\n";
         } else {
-            std::cout << "[HOLD] " << name
-                      << " qty=" << t.qty
-                      << " @ " << t.px << "\n";
+            std::cout << "[HOLD] " << name << " qty=" << t.qty << " @ " << t.px << "\n";
         }
     }
 }

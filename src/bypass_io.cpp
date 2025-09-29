@@ -1,12 +1,13 @@
-#include "spsc_ring.h"
-#include "common.h"
 #include "bypass_io.h"
-#include <chrono>
-#include <thread>
-#include <stdexcept>
-#include <cstring>
-#include <cerrno>
 #include <poll.h>
+#include <cerrno>
+#include <chrono>
+#include <cstring>
+#include <iostream>
+#include <stdexcept>
+#include <thread>
+#include "common.h"
+#include "spsc_ring.h"
 
 #ifdef USE_NETMAP
 #ifndef NETMAP_WITH_LIBS
@@ -23,7 +24,9 @@
 void pin_thread_to_core(int core) {
 #ifdef __linux__
     if (core < 0) return;
-    cpu_set_t set; CPU_ZERO(&set); CPU_SET(core, &set);
+    cpu_set_t set;
+    CPU_ZERO(&set);
+    CPU_SET(core, &set);
     pthread_setaffinity_np(pthread_self(), sizeof(set), &set);
 #else
     (void)core;
@@ -51,9 +54,9 @@ BypassIO::BypassIO(const BypassConfig& cfg) : cfg_(cfg), impl_(new Impl) {
     impl_->nmd = nmd;
     impl_->fd = nmd->fd;
     impl_->rx_first = (cfg_.rx_ring_first >= 0) ? cfg_.rx_ring_first : nmd->first_rx_ring;
-    impl_->rx_last  = (cfg_.rx_ring_last  >= 0) ? cfg_.rx_ring_last  : nmd->last_rx_ring;
+    impl_->rx_last = (cfg_.rx_ring_last >= 0) ? cfg_.rx_ring_last : nmd->last_rx_ring;
     impl_->tx_first = (cfg_.tx_ring_first >= 0) ? cfg_.tx_ring_first : nmd->first_tx_ring;
-    impl_->tx_last  = (cfg_.tx_ring_last  >= 0) ? cfg_.tx_ring_last  : nmd->last_tx_ring;
+    impl_->tx_last = (cfg_.tx_ring_last >= 0) ? cfg_.tx_ring_last : nmd->last_tx_ring;
 
     // Optional virtio-net header negotiation (see pkt-gen get/set helpers)
     if (cfg_.enable_vnet_hdr) {
@@ -62,15 +65,13 @@ BypassIO::BypassIO(const BypassConfig& cfg) : cfg_(cfg), impl_(new Impl) {
     }
     ok_ = true;
 #else
-    ok_ = false; // No fallback here; keep explicit for this project
+    ok_ = false;  // No fallback here; keep explicit for this project
 #endif
 }
 
 BypassIO::~BypassIO() {
 #ifdef USE_NETMAP
-    if (impl_ && impl_->nmd) {
-        nm_close(impl_->nmd);
-    }
+    if (impl_ && impl_->nmd) { nm_close(impl_->nmd); }
 #endif
     delete impl_;
 }
@@ -94,7 +95,8 @@ int BypassIO::rx_batch(const std::function<bool(const PacketView&)>& cb) {
         uint32_t avail = nm_ring_space(ring);
         if (avail == 0) continue;
 
-        uint32_t take = (avail > (uint32_t)limit_per_ring) ? (uint32_t)limit_per_ring : avail;
+        uint32_t take =
+            (avail > (uint32_t)limit_per_ring) ? (uint32_t)limit_per_ring : avail;
         uint32_t cur = ring->cur;
 
         for (uint32_t i = 0; i < take; ++i) {
@@ -102,7 +104,8 @@ int BypassIO::rx_batch(const std::function<bool(const PacketView&)>& cb) {
             auto* buf = (uint8_t*)NETMAP_BUF(ring, slot.buf_idx);
             PacketView v{buf, (uint16_t)slot.len, rdtsc()};
             ++processed;
-            ++stats_.pkts; stats_.bytes += slot.len;
+            ++stats_.pkts;
+            stats_.bytes += slot.len;
 
             if (!cb(v)) {
                 ring->head = ring->cur = cur;
@@ -121,7 +124,8 @@ int BypassIO::rx_batch(const std::function<bool(const PacketView&)>& cb) {
 
 int BypassIO::tx(const uint8_t* data, uint16_t len) {
 #ifndef USE_NETMAP
-    (void)data; (void)len;
+    (void)data;
+    (void)len;
     return -1;
 #else
     auto* nmd = impl_->nmd;
@@ -135,7 +139,7 @@ int BypassIO::tx(const uint8_t* data, uint16_t len) {
         ring->head = ring->cur = nm_ring_next(ring, ring->cur);
         return 1;
     }
-    ++stats_.drops; // no space
+    ++stats_.drops;  // no space
     return 0;
 #endif
 }
