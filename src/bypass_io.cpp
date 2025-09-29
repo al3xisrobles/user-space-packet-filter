@@ -85,7 +85,14 @@ int BypassIO::rx_batch(const std::function<bool(const PacketView&)>& cb) {
     // Optionally use poll() if busy_poll is false; otherwise spin for low latency
     if (!cfg_.busy_poll) {
         pollfd pfd{impl_->fd, POLLIN, 0};
-        if (poll(&pfd, 1, 1000) <= 0) return 0;
+        if (poll(&pfd, 1, 1000) <= 0) {
+            // Print that we timed out waiting for packets
+            std::cout << "Poll timed out or error occurred while waiting for packets.";
+            return 0;
+        } else {
+            // Print that we are ready to receive packets
+            std::cout << "Ready to receive packets after poll.";
+        }
     }
 
     const int limit_per_ring = cfg_.burst;
@@ -102,6 +109,9 @@ int BypassIO::rx_batch(const std::function<bool(const PacketView&)>& cb) {
         for (uint32_t i = 0; i < take; ++i) {
             auto& slot = ring->slot[cur];
             auto* buf = (uint8_t*)NETMAP_BUF(ring, slot.buf_idx);
+            // Print out that we received a packet
+            std::cout << "Received packet of length: " << slot.len << " bytes"
+                      << std::endl;
             PacketView v{buf, (uint16_t)slot.len, rdtsc()};
             ++processed;
             ++stats_.pkts;
@@ -112,6 +122,8 @@ int BypassIO::rx_batch(const std::function<bool(const PacketView&)>& cb) {
                 return processed;
             }
             cur = nm_ring_next(ring, cur);
+            // Print out that we processed a packet
+            std::cout << "Processed packet of length: " << slot.len << " bytes";
         }
         ring->head = ring->cur = cur;
         ++stats_.batches;

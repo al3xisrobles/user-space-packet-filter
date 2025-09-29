@@ -26,6 +26,9 @@ static inline void cpu_relax() {
 
 bool PacketFilter::accept(const uint8_t* p, uint16_t len) const {
     // Fast-drop: minimum Ethernet+IPv4
+    // Print out that we received a packet
+    std::cout << "Received packet of length: " << len << " bytes" << std::endl;
+
     if (unlikely(len < 14)) return false;
 
     // EtherType at offset 12

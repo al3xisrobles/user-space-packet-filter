@@ -159,7 +159,7 @@ int main(int argc, char** argv) {
     // Background thread for logging
     std::thread reporter([&] {
         while (g_running && std::chrono::steady_clock::now() < end) {
-            std::this_thread::sleep_for(std::chrono::seconds(1));
+            std::this_thread::sleep_for(std::chrono::seconds(5));
             print_once(false);
         }
     });

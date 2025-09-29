@@ -9,7 +9,7 @@ def send_tick(sock, host, port, instr_id, instr_type, side, px, qty):
     sock.sendto(payload, (host, port))
 
 if __name__ == "__main__":
-    HOST = "EC2_PRIVATE_IP"  # e.g., "10.0.1.23"
+    HOST = "172.31.36.110"  # e.g., "10.0.1.23"
     PORT =  5001             # must match your PacketFilter udp_port
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 

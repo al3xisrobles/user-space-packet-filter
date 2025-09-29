@@ -82,14 +82,17 @@ int PacketCapture::pump(const std::function<bool(const PacketView&)>& cb) {
                       " bytes=%" PRIu64 " drops=%" PRIu64,
                 got, ios.pkts, ios.bytes, ios.drops);
         } else {
-            log_debug("pump: rx_batch got=%d, accepted=%" PRIu64 ", filtered=%" PRIu64
-                      ", io_drops=%" PRIu64 ", agg_pkts=%" PRIu64 ", agg_bytes=%" PRIu64,
-                got, accepted, filtered, ios.drops, stats_.pkts, stats_.bytes);
-            if (got == 0) {
-                log_debug(
-                    "pump: no packets this batch (polling). Possible idle link or "
-                    "polling budget exhausted.");
+            if (got > 0) {
+                log_debug("pump: rx_batch got=%d, accepted=%" PRIu64 ", filtered=%" PRIu64
+                          ", io_drops=%" PRIu64 ", agg_pkts=%" PRIu64
+                          ", agg_bytes=%" PRIu64,
+                    got, accepted, filtered, ios.drops, stats_.pkts, stats_.bytes);
             }
+            // if (got == 0) {
+            //     log_debug(
+            //         "pump: no packets this batch (polling). Possible idle link or "
+            //         "polling budget exhausted.");
+            // }
         }
     }
     return got;
@@ -186,7 +189,7 @@ void PacketCapture::thread_main(std::shared_ptr<Ring> ring,
         // Periodic debug summary (once per ~500ms)
         if (debug_enabled()) {
             auto now = std::chrono::steady_clock::now();
-            if (now - last_report >= std::chrono::milliseconds(500)) {
+            if (now - last_report >= std::chrono::milliseconds(2000)) {
                 auto ios = io_.stats();
                 log_debug("loop: got=%d | pushed=%" PRIu64 " backpressure=%" PRIu64
                           " non-udp/ipv4=%" PRIu64 " bad-payload=%" PRIu64
