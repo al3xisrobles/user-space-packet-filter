@@ -7,13 +7,13 @@
 
 _How can modern OS and hardware features be used to build ultra-low-latency trading infrastructure?_
 
-I present a high-performance, user-space network packet filter optimized for low-latency trading environments on Linux. Traditional network packet filtering solutions rely heavily on kernel-space processing, introducing unnecessary context switch overhead, system call latency, and buffer copying inefficiencies. By bypassing the kernel’s traditional networking stack and implementing user-space packet filtering, this project explores the fundamental trade-offs in networking performance and HFT infrastructure optimizations.
+I present a high-performance, user-space network packet filter optimized for low-latency trading environments on Linux. Traditional network packet filtering solutions rely heavily on kernel-space processing, introducing unnecessary context switch overhead, system call latency, and buffer copying inefficiencies. By bypassing the kernel’s traditional networking stack with netmap and implementing user-space packet filtering, this project explores the fundamental trade-offs in networking performance and HFT infrastructure optimizations.
 
 ---
 
 ## Running
 
-First, make sure you have **netmap** installed on your Linux machine. Instructions for building and installing netmap can be found here: [Netmap GitHub Repository](https://github.com/luigirizzo/netmap).
+First, make sure you have netmap installed on your Linux machine. Instructions for building and installing netmap can be found here: [Netmap GitHub Repository](https://github.com/luigirizzo/netmap).
 
 Build the project (requires netmap headers/libs on the system):
 
