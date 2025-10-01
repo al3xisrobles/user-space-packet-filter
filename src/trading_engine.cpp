@@ -13,6 +13,11 @@ namespace {
 //       more dynamic, like inventory driven fitting + vol fitting, etc.
 constexpr double PRICE_MEAN = 100.0;
 
+const char* side_label(uint8_t s) {
+    return s == 0 ? "BID" : "ASK";
+}
+}  // namespace
+
 std::string instr_name(int instr_id) {
     switch (instr_id) {
         case 0:
@@ -25,7 +30,6 @@ std::string instr_name(int instr_id) {
             return "UNKNOWN";
     }
 }
-}  // namespace
 
 TradingEngine::TradingEngine(std::shared_ptr<Ring> ring) : ring_(std::move(ring)) {
 }
@@ -50,16 +54,10 @@ void TradingEngine::stop() {
 void TradingEngine::run_once() {
     Tick t;
     while (ring_->pop(t)) {
-        std::string name = instr_name(t.instr_id);
-
-        std::cout << "Received tick with name: " << name;
-        if (t.px < PRICE_MEAN) {
-            std::cout << "[BUY ] " << name << " qty=" << t.qty << " @ " << t.px << "\n";
-        } else if (t.px > PRICE_MEAN) {
-            std::cout << "[SELL] " << name << " qty=" << t.qty << " @ " << t.px << "\n";
-        } else {
-            std::cout << "[HOLD] " << name << " qty=" << t.qty << " @ " << t.px << "\n";
-        }
+        std::string name = instr_name(t.instr_type);  // <-- use type
+        std::cout << "Received tick with name: " << name << " [" << side_label(t.side)
+                  << "] "  // <-- use packet side
+                  << name << " qty=" << t.qty << " @ " << t.px << "\n";
     }
 }
 

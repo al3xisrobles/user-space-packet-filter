@@ -2,12 +2,61 @@
 #include <chrono>
 #include <cinttypes>
 #include <cstdarg>
+#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
-#include "udp_md_codec.h"
+#include <cstring>
+#include "common.h"
 
 // forward declaration; implemented in bypass_io.cpp
 void pin_thread_to_core(int core);
+
+inline bool locate_udp_payload_14(const uint8_t* p, uint16_t len, const uint8_t*& out) {
+    if (!p || len < 14 + 20 + 8) return false;
+    const uint16_t etype = (uint16_t(p[12]) << 8) | uint16_t(p[13]);
+    if (etype != 0x0800) return false;  // IPv4
+
+    const uint8_t* ip = p + 14;
+    const uint8_t ihl = (ip[0] & 0x0F) * 4;
+    if (ihl < 20 || len < 14 + ihl + 8) return false;
+    if (ip[9] != 17) return false;  // UDP
+
+    const uint8_t* udp = ip + ihl;
+    const uint16_t ulen = (uint16_t(udp[4]) << 8) | uint16_t(udp[5]);
+    if (ulen < 8) return false;
+    const uint16_t paylen = ulen - 8;
+    if (paylen != 14) return false;
+
+    const uint8_t* payload = udp + 8;
+    if ((payload + 14) > (p + len)) return false;
+    out = payload;
+    return true;
+}
+
+inline bool decode_tick_from_packet(const uint8_t* p, uint16_t len, uint64_t tsc,
+    Tick& out) {
+    const uint8_t* payload = nullptr;
+    if (!locate_udp_payload_14(p, len, payload)) return false;
+
+    uint32_t instr_id = 0;
+    uint8_t instr_type = 0;
+    uint8_t side = 0;
+    float px = 0.f, qty = 0.f;
+
+    std::memcpy(&instr_id, payload + 0, 4);
+    std::memcpy(&instr_type, payload + 4, 1);
+    std::memcpy(&side, payload + 5, 1);
+    std::memcpy(&px, payload + 6, 4);
+    std::memcpy(&qty, payload + 10, 4);
+
+    out.ts_ns = tsc;
+    out.instr_id = instr_id;
+    out.instr_type = instr_type;  // <-- now set
+    out.side = side;  // <-- now set
+    out.px = px;
+    out.qty = qty;
+    return true;
+}
 
 // Local debug helpers (opt-in via USPF_DEBUG=1)
 static bool debug_enabled() {
@@ -58,13 +107,19 @@ int PacketCapture::pump(const std::function<bool(const PacketView&)>& cb) {
     uint64_t accepted = 0;
     uint64_t filtered = 0;
 
+    // accepted_cb wraps filtering so that rejection does not stop draining.
+    // Return value contract:
+    //   - return true  => keep draining the ring
+    //   - return false => request early stop (fatal/budget/shutdown)
     auto accepted_cb = [&](const PacketView& v) -> bool {
         if (filter_.accept(v.data, v.len)) {
             ++accepted;
+            // cb(v) may push to the downstream SPSC ring.
+            // cb(v)==false means: "stop draining RX now because something went wrong"
             if (!cb(v)) return false;
         } else {
             ++filtered;
-            ++stats_.drops;  // interpret as filtered drop for visibility
+            ++stats_.drops;
         }
         return true;
     };
@@ -88,11 +143,6 @@ int PacketCapture::pump(const std::function<bool(const PacketView&)>& cb) {
                           ", agg_bytes=%" PRIu64,
                     got, accepted, filtered, ios.drops, stats_.pkts, stats_.bytes);
             }
-            // if (got == 0) {
-            //     log_debug(
-            //         "pump: no packets this batch (polling). Possible idle link or "
-            //         "polling budget exhausted.");
-            // }
         }
     }
     return got;
@@ -140,45 +190,19 @@ void PacketCapture::thread_main(std::shared_ptr<Ring> ring,
     }
 
     // Counters to explain *why* we might not be passing ticks downstream
-    uint64_t not_udp_ipv4 = 0;
-    uint64_t bad_payload = 0;
     uint64_t ring_backpressure = 0;
     uint64_t ticks_pushed = 0;
 
     // Fast path callback: PacketView -> Tick -> push to SPSC
     auto to_tick_and_push = [&](const PacketView& v) -> bool {
-        const uint8_t* pl = nullptr;
-        uint16_t pl_len = 0;
-        if (!parse_eth_ipv4_udp(v.data, v.len, pl, pl_len)) {
-            ++not_udp_ipv4;
-            return true;  // silently skip non-UDP/IPv4
-        }
-
-        uint32_t instr_id = 0;
-        uint8_t instr_type = 0;
-        uint8_t side = 0;
-        float px = 0.f, qty = 0.f;
-
-        if (!decode_md_payload(pl, pl_len, instr_id, instr_type, side, px, qty)) {
-            ++bad_payload;
-            return true;  // malformed payload
-        }
-
         Tick t{};
-        t.ts_ns = v.tsc;  // filled by rx_batch
-        t.instr_id = instr_type;  // mapping per your comment
-        t.side = side;
-        t.px = px;
-        t.qty = qty;
-
-        if (!ring->push(t)) {
-            ++ring_backpressure;  // consumer behind or ring too small
-        } else {
+        if (!decode_tick_from_packet(v.data, v.len, v.tsc, t)) return true;
+        if (!ring->push(t))
+            ++ring_backpressure;
+        else
             ++ticks_pushed;
-        }
         return true;
     };
-
     // Main capture loop
     auto last_report = std::chrono::steady_clock::now();
     while (running_.load(std::memory_order_relaxed) && running_flag &&
@@ -192,10 +216,8 @@ void PacketCapture::thread_main(std::shared_ptr<Ring> ring,
             if (now - last_report >= std::chrono::milliseconds(2000)) {
                 auto ios = io_.stats();
                 log_debug("loop: got=%d | pushed=%" PRIu64 " backpressure=%" PRIu64
-                          " non-udp/ipv4=%" PRIu64 " bad-payload=%" PRIu64
                           " | io_pkts=%" PRIu64 " io_bytes=%" PRIu64 " io_drops=%" PRIu64,
-                    got, ticks_pushed, ring_backpressure, not_udp_ipv4, bad_payload,
-                    ios.pkts, ios.bytes, ios.drops);
+                    got, ticks_pushed, ring_backpressure, ios.pkts, ios.bytes, ios.drops);
                 if (ring_backpressure > 0) {
                     log_debug(
                         "loop: ring backpressure observed. Consider increasing ring size "
@@ -219,9 +241,7 @@ void PacketCapture::thread_main(std::shared_ptr<Ring> ring,
 
     if (debug_enabled()) {
         log_debug("thread_main: exit summary: pushed=%" PRIu64 ", backpressure=%" PRIu64
-                  ", non-udp/ipv4=%" PRIu64 ", bad-payload=%" PRIu64
                   ", final_pkts=%" PRIu64 ", final_bytes=%" PRIu64,
-            ticks_pushed, ring_backpressure, not_udp_ipv4, bad_payload, stats_.pkts,
-            stats_.bytes);
+            ticks_pushed, ring_backpressure, stats_.pkts, stats_.bytes);
     }
 }

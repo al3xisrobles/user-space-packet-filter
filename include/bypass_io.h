@@ -4,14 +4,13 @@
 #include "common.h"
 
 struct BypassConfig {
-    std::string ifname = "netmap:eth0";  // e.g., netmap:eth0 or vale:sw{1
+    std::string ifname = "netmap:eth0";
     int rx_ring_first = -1;  // -1 = all
     int rx_ring_last = -1;
     int tx_ring_first = -1;
     int tx_ring_last = -1;
     int burst = BATCH_SIZE;
-    bool busy_poll = true;  // spin for lowest latency
-    bool enable_vnet_hdr = false;  // set/require virtio-net header
+    bool busy_poll = true;
     int cpu_affinity = -1;  // -1 = don't pin
 };
 

@@ -1,7 +1,7 @@
 #pragma once
-#include "spsc_ring.h"
-#include <cstdint>
 #include <cstddef>
+#include <cstdint>
+#include "spsc_ring.h"
 
 // Build-time feature toggles
 // Define USE_NETMAP to enable kernel bypass. Otherwise raw sockets/pcap stubs.
@@ -10,12 +10,12 @@
 #endif
 
 struct Tick {
-    uint64_t ts_ns;    // timestamp (or TSC)
-    uint8_t instr_id; // mapping to instrument
-    uint8_t  side;     // 0=bid,1=ask
-    float    px;
-    float    qty;
-    // ~14 bytes; keep small
+    uint64_t ts_ns;  // timestamp (or TSC)
+    uint32_t instr_id;  // unique instrument identifier
+    uint8_t instr_type;  // 0=UNDERLYING, 1=OPTION, 2=FUTURE
+    uint8_t side;  // 0=bid,1=ask
+    float px;
+    float qty;
 };
 
 // Simple result type

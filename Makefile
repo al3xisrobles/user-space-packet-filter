@@ -7,7 +7,13 @@ SRC := src/main.cpp src/bypass_io.cpp src/packet_capture.cpp src/packet_filter.c
 OBJ := $(patsubst src/%.cpp,build/%.o,$(SRC))
 BIN := build/user_space_packet_filter
 
-all: $(BIN)
+SUBDIRS := utils
+
+all: $(BIN) $(SUBDIRS)
+
+
+$(SUBDIRS):
+	$(MAKE) -C $@
 
 $(BIN): $(OBJ) | build
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) $(OBJ) -o $@ $(LDLIBS)
@@ -21,5 +27,6 @@ build:
 
 clean:
 	rm -rf build
+	for d in $(SUBDIRS); do $(MAKE) -C $$d clean; done
 
 .PHONY: all clean
