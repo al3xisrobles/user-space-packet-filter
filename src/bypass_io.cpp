@@ -21,6 +21,7 @@
 #include <sched.h>
 #endif
 
+// Pin a thread to a CPU core (-1 = no pin)
 void pin_thread_to_core(int core) {
 #ifdef __linux__
     if (core < 0) return;
@@ -53,6 +54,7 @@ struct BypassIO::Impl {
 
 BypassIO::BypassIO(const BypassConfig& cfg) : cfg_(cfg), impl_(new Impl) {
 #ifdef USE_NETMAP
+    // Open the netmap interface
     nm_desc* nmd = nm_open(cfg_.ifname.c_str(), nullptr, 0, nullptr);
     if (!nmd) {
         ok_ = false;
@@ -60,19 +62,16 @@ BypassIO::BypassIO(const BypassConfig& cfg) : cfg_(cfg), impl_(new Impl) {
     }
     impl_->nmd = nmd;
     impl_->fd = nmd->fd;
+
+    // Set RX/TX ring range
     impl_->rx_first = (cfg_.rx_ring_first >= 0) ? cfg_.rx_ring_first : nmd->first_rx_ring;
     impl_->rx_last = (cfg_.rx_ring_last >= 0) ? cfg_.rx_ring_last : nmd->last_rx_ring;
     impl_->tx_first = (cfg_.tx_ring_first >= 0) ? cfg_.tx_ring_first : nmd->first_tx_ring;
     impl_->tx_last = (cfg_.tx_ring_last >= 0) ? cfg_.tx_ring_last : nmd->last_tx_ring;
 
-    // Optional virtio-net header negotiation (see pkt-gen get/set helpers)
-    if (cfg_.enable_vnet_hdr) {
-        // best-effort: request header via ioctl path (omitted here for brevity)
-        // impl_->vnet_len = 10 or 12 depending on host; leave 0 if unsupported
-    }
     ok_ = true;
 #else
-    ok_ = false;  // No fallback here; keep explicit for this project
+    ok_ = false;
 #endif
 }
 
@@ -149,49 +148,41 @@ int BypassIO::rx_batch(const std::function<bool(const PacketView&)>& cb) {
         uint32_t take =
             (avail > (uint32_t)limit_per_ring) ? (uint32_t)limit_per_ring : avail;
 
+        // The cur is the wakeup pointer where we start processing packets if
+        // tail has advanced past it.
         uint32_t cur = ring->cur;
 
+        // Process up to `take` packets from this ring
         for (uint32_t i = 0; i < take; ++i) {
+            // Get a reference to the current slot and construct a PacketView
             auto& slot = ring->slot[cur];
+
+            // Get the packet buffer from the memory-mapped region
             auto* buf = (uint8_t*)NETMAP_BUF(ring, slot.buf_idx);
+
             PacketView v{buf, (uint16_t)slot.len, rdtsc()};
             ++processed;
             ++stats_.pkts;
             stats_.bytes += slot.len;
 
+            // Invoke the user callback. If it returns false, we stop processing
+            // early and save our position for the next call.
             if (!cb(v)) {
                 ring->head = ring->cur = cur;
                 return processed;
             }
+
+            // Advance to the next slot in the ring
             cur = nm_ring_next(ring, cur);
         }
+
+        // Head is where the user can read from next, so we set head=cur because
+        // we processed everything up to cur.
         ring->head = ring->cur = cur;
         ++stats_.batches;
     }
     return processed;
 #else
     return -1;
-#endif
-}
-
-int BypassIO::tx(const uint8_t* data, uint16_t len) {
-#ifndef USE_NETMAP
-    (void)data;
-    (void)len;
-    return -1;
-#else
-    auto* nmd = impl_->nmd;
-    for (int r = impl_->tx_first; r <= impl_->tx_last; ++r) {
-        auto* ring = NETMAP_TXRING(nmd->nifp, r);
-        if (nm_ring_space(ring) == 0) continue;
-        auto& slot = ring->slot[ring->cur];
-        uint8_t* dst = (uint8_t*)NETMAP_BUF(ring, slot.buf_idx);
-        nm_pkt_copy(data, dst, len);
-        slot.len = len;
-        ring->head = ring->cur = nm_ring_next(ring, ring->cur);
-        return 1;
-    }
-    ++stats_.drops;  // no space
-    return 0;
 #endif
 }

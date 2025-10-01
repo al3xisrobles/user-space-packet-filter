@@ -10,15 +10,25 @@
 #endif
 
 struct Tick {
-    uint64_t ts_ns;  // timestamp (or TSC)
-    uint32_t instr_id;  // unique instrument identifier
-    uint8_t instr_type;  // 0=UNDERLYING, 1=OPTION, 2=FUTURE
-    uint8_t side;  // 0=bid,1=ask
+    // Timestamp (or TSC)
+    uint64_t ts_ns;
+
+    // Unique instrument identifier
+    uint32_t instr_id;
+
+    // 0=UNDERLYING, 1=OPTION, 2=FUTURE
+    uint8_t instr_type;
+
+    // 0=bid, 1=ask
+    uint8_t side;
+
+    // Price
     float px;
+
+    // Quantity
     float qty;
 };
 
-// Simple result type
 struct Stats {
     uint64_t pkts{0};
     uint64_t bytes{0};
@@ -26,17 +36,14 @@ struct Stats {
     uint64_t batches{0};
 };
 
-// Ingress sample handed to strategy
 struct PacketView {
     const uint8_t* data{nullptr};
     uint16_t len{0};
     uint64_t tsc{0};
 };
 
-// Pin a thread to a CPU core (best effort)
 void pin_thread_to_core(int core);
 
-// rdtsc helper
 inline uint64_t rdtsc() {
 #if defined(__x86_64__)
     unsigned hi, lo;

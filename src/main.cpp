@@ -33,10 +33,7 @@ static bool debug_enabled() {
     return enabled;
 }
 
-[[maybe_unused]] static const char* yn(bool x) {
-    return x ? "yes" : "no";
-}
-
+// Log a debug message if USPF_DEBUG=1
 static void log_debug(const char* fmt, ...) {
     if (!debug_enabled()) return;
     using clock = std::chrono::system_clock;
@@ -71,7 +68,6 @@ int main(int argc, char** argv) {
     BypassConfig io{};
     FilterConfig fc{};
     int run_seconds = 0;
-
     for (int i = 1; i < argc; i++) {
         if (!std::strcmp(argv[i], "-i") && i + 1 < argc)
             io.ifname = argv[++i];
@@ -98,11 +94,12 @@ int main(int argc, char** argv) {
         log_debug("  run_seconds    = %d", run_seconds);
     }
 
+    // Create an SPSC ring for Ticks to be passed to TradingEngine
     auto ring = std::make_shared<SpscRing<Tick, 4096> >();
 
     PacketCapture cap(io, fc);
 
-    // quick sanity: single pump with no-op; print why if it fails or returns 0
+    // Sanityb check: ingle pump with no-op; print why if it fails or returns 0
     log_debug("Performing sanity pump...");
     int first_got = cap.pump([](const PacketView&) { return true; });
     const auto first_stats = cap.stats();
@@ -116,6 +113,7 @@ int main(int argc, char** argv) {
         return 1;
     }
 
+    // Start the trading engine consumer
     TradingEngine engine{ring};
     engine.start();
 
@@ -177,8 +175,8 @@ int main(int argc, char** argv) {
     // Stop threads
     log_debug("Stopping PacketCapture and TradingEngine...");
     reporter.join();
-    cap.stop();  // joins producer thread
-    engine.stop();  // joins consumer thread
+    cap.stop();
+    engine.stop();
 
     print_once(true);
     log_debug("Shutdown complete.");

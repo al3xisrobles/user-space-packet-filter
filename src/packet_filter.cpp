@@ -24,6 +24,34 @@ static inline void cpu_relax() {
 #endif
 }
 
+/**
+ * @brief Fast-path predicate to accept/drop a packet based on L2/L3/L4 rules
+ *        and a fixed 14-byte UDP payload shape.
+ *
+ *  - Validates Ethernet type (IPv4), IPv4 header length/bounds, and UDP protocol.
+ *  - Checks destination UDP port if configured (cfg_.udp_port).
+ *  - Verifies UDP length and frame bounds, requiring exactly 14 bytes of payload.
+ *  - Performs a cheap shape check of the payload by memcpy’ing fields into
+ *    temporaries (u32 instr_id, u8 instr_type, u8 side, f32 px, f32 qty)
+ *    without mutating any external state.
+ *
+ * Performance characteristics:
+ *  - Branching is laid out to favor the likely fast path (IPv4/UDP).
+ *  - Bounds checks ensure we never read beyond `p + len`.
+ *  - The payload field memcpy here is intentionally minimal and does not
+ *    allocate or write to external state.
+ *
+ * TODO: accept(), decode_tick_from_packet(), and locate_udp_payload_14()
+ * duplicate parsing logic. Consider unifying validation+decode to avoid double
+ * memcpy and bounds checks.
+ *
+ * @param p   Pointer to the start of the Ethernet frame.
+ * @param len Total frame length in bytes.
+ * @return true if the packet matches the configured filters and has a valid
+ *               14-byte UDP payload.
+ * @return false if the packet is non-IPv4/UDP, wrong port (if set), malformed,
+ *               too short, or does not carry a 14-byte payload.
+ */
 bool PacketFilter::accept(const uint8_t* p, uint16_t len) const {
     if (unlikely(len < 14)) return false;
 
@@ -60,7 +88,7 @@ bool PacketFilter::accept(const uint8_t* p, uint16_t len) const {
 
             const uint8_t* payload = p + payload_off;
 
-            // Optional: cheap shape check without mutating user state
+            // Cheap shape check without mutating user state
             uint32_t instr_id = 0;
             uint8_t instr_type = 0, side = 0;
             float px = 0.f, qty = 0.f;
@@ -69,8 +97,6 @@ bool PacketFilter::accept(const uint8_t* p, uint16_t len) const {
             std::memcpy(&side, payload + 5, 1);
             std::memcpy(&px, payload + 6, 4);
             std::memcpy(&qty, payload + 10, 4);
-
-            // Could add basic sanity (e.g., instr_type <= 2, side <= 1)
         }
     }
     return true;

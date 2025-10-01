@@ -15,7 +15,6 @@ public:
 
     PacketCapture(const BypassConfig& io_cfg, const FilterConfig& f_cfg);
 
-    // One-shot batch pump NIC → filter → user callback (kept for tests/tools)
     int pump(const std::function<bool(const PacketView&)>& cb);
 
     // Background capture: runs a producer thread that pushes Tick into ring

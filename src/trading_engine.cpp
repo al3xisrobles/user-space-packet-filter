@@ -9,14 +9,14 @@
 #include <cstring>
 
 namespace {
-// TODO: Replace this constant price mean reversion logic to something
-//       more dynamic, like inventory driven fitting + vol fitting, etc.
+// TODO: Replace this constant price mean reversion logic to something more
+// dynamic, like inventory driven fitting + vol fitting, etc.
 constexpr double PRICE_MEAN = 100.0;
 
 const char* side_label(uint8_t s) {
     return s == 0 ? "BID" : "ASK";
 }
-}  // namespace
+}
 
 std::string instr_name(int instr_id) {
     switch (instr_id) {
@@ -50,7 +50,6 @@ void TradingEngine::stop() {
     if (worker_.joinable()) worker_.join();
 }
 
-// Consumer
 void TradingEngine::run_once() {
     Tick t;
     while (ring_->pop(t)) {

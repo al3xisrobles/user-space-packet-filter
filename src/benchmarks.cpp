@@ -17,6 +17,7 @@ int run_rx_benchmark(BypassConfig cfg, int seconds) {
     auto last = std::chrono::steady_clock::now();
 
     for (;;) {
+        // Drain packets from RX rings
         io.rx_batch([](const PacketView&){ return true; });
 
         auto now = std::chrono::steady_clock::now();
@@ -35,8 +36,15 @@ int run_rx_benchmark(BypassConfig cfg, int seconds) {
     return 0;
 }
 
-// Starts a background thread that prints delta pps/gbps every second and prints a final summary
-// when it exits. Caller may join the returned std::thread.
+/**
+ * @brief Starts a background thread that prints delta pps/gbps every second and
+ * prints a final summary when it exits. Caller may join the returned std::thread.
+ *
+ * @param cap PacketCapture instance to query stats from
+ * @param global_running External atomic<bool> flag to control thread lifetime
+ * @param end_time Time point to stop reporting (pass max() if not timed)
+ * @return std::thread running the reporter (caller must join)
+ */
 std::thread start_stats_reporter(PacketCapture& cap,
                                  std::atomic<bool>& global_running,
                                  std::chrono::steady_clock::time_point end_time)
