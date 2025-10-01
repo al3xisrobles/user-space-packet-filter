@@ -100,7 +100,7 @@ These concerns are not about absolute performance ceilings (public netmap benchm
 
 With the system pinned to a single dedicated core on bare-metal hardware, we observed a clear performance advantage for kernel-bypass packet capture via netmap over traditional Linux sockets.
 
-![RX Throughput Graph](./rx_throughput_results.png)
+![RX Throughput Graph](./results/rx_throughput_results.png)
 
 ### Average Throughput (Mpps)
 
@@ -123,7 +123,7 @@ These numbers reflect the per-packet processing cost at the RX ring—including 
 
 The ~0.5 Mpps throughput gain demonstrates the value of bypassing the kernel networking stack: fewer context switches, fewer memory copies, and more predictable per-packet timings. While the absolute service-time difference is on the order of nanoseconds, at millions of packets per second this result is meaningful—being even a fraction of a microsecond ahead can determine whether a firm captures or misses an arbitrage opportunity.
 
-So... it turns out that the fastest way to make money is to spend less time in the kernel.
+So it turns out that the fastest way to make money is to spend less time in the kernel... 😊
 
 ---
 
