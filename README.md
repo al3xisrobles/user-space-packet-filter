@@ -123,8 +123,6 @@ These numbers reflect the per-packet processing cost at the RX ring—including 
 
 The ~0.5 Mpps throughput gain demonstrates the value of bypassing the kernel networking stack: fewer context switches, fewer memory copies, and more predictable per-packet timings. While the absolute service-time difference is on the order of nanoseconds, at millions of packets per second this result is meaningful—being even a fraction of a microsecond ahead can determine whether a firm captures or misses an arbitrage opportunity.
 
-So it turns out that the fastest way to make money is to spend less time in the kernel... 😊
-
 ---
 
 ## References and Resources
