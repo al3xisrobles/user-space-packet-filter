@@ -11,11 +11,11 @@
 
 struct Tick {
     uint64_t ts_ns;    // timestamp (or TSC)
-    uint32_t instr_id; // mapping to instrument
+    uint8_t instr_id; // mapping to instrument
     uint8_t  side;     // 0=bid,1=ask
     float    px;
     float    qty;
-    // ~24 bytes; keep small
+    // ~14 bytes; keep small
 };
 
 // Simple result type
